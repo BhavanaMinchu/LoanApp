@@ -1,0 +1,81 @@
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Loan App</h2>
+    <ul>
+      <li [class.active]="activeTab === 'apply'" (click)="activeTab = 'apply'">
+        Apply for Loan
+      </li>
+      <li [class.active]="activeTab === 'applied'" (click)="activeTab = 'applied'">
+        Applied Loans
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <!-- Apply Loan Form -->
+    <div *ngIf="activeTab === 'apply'" class="apply-form">
+      <h2>Apply for a Loan</h2>
+      <form (ngSubmit)="applyForLoan()">
+        <label>Loan Amount</label>
+        <input type="number" [(ngModel)]="loanAmount" name="amount" required />
+
+        <label>Loan Type</label>
+        <select [(ngModel)]="loanType" name="type" required>
+          <option value="" disabled selected>Select Type</option>
+          <option *ngFor="let type of loanTypes" [value]="type">{{ type }}</option>
+        </select>
+
+        <label>Tenure (in years)</label>
+        <input type="number" [(ngModel)]="tenure" name="tenure" required />
+
+        <label>Purpose</label>
+        <textarea [(ngModel)]="purpose" name="purpose" required></textarea>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+
+    <!-- Applied Loans Table -->
+    <div *ngIf="activeTab === 'applied'" class="applied-loans">
+      <h2>Applied Loans</h2>
+      <table class="table table-bordered table-hover mt-3">
+        <thead class="table-primary">
+          <tr>
+            <th>Loan ID</th>
+            <th>Loan Type</th>
+            <th>Applicant Name</th>
+            <th>Applicant ID</th>
+            <th>Amount</th>
+            <th>Tenure</th>
+            <th>Purpose</th>
+            <th>Status</th>
+            <th>Applied On</th>
+            <th>Decision Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ✅ Added let i = index -->
+          <tr *ngFor="let loan of loanApplications; let i = index">
+            <td>{{ loan.loanId }}</td>
+            <td>{{ loan.loanType }}</td>
+            <td>{{ loan.applicantName }}</td>
+            <td>{{ loan.applicantId }}</td>
+            <td>{{ loan.loanAmount }}</td>
+            <td>{{ loan.tenure }}</td>
+            <td>{{ loan.purpose }}</td>
+            <td>{{ loan.status }}</td>
+            <td>{{ loan.appliedOn }}</td>
+            <td>{{ loan.decisionDate || '—' }}</td>
+            <td>
+              <button class="btn btn-sm btn-danger" (click)="withdrawLoan(i)">Withdraw</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button (click)="logout()" class="btn btn-danger">Logout</button>
+    </div>
+  </div>
+</div>
