@@ -7,9 +7,12 @@ import { AppComponent } from './app.component';
 import { RegisterComponent } from './components/register/register.component';
 import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { AuthService } from './auth.service';
 import { ManagerDashboardComponent } from './components/manager-dashboard/manager-dashboard.component';
-import { HiComponent } from './components/hi/hi.component';
+import { LandingComponent } from './components/landing/landing.component';
+
+import { AuthService } from './auth.service';
+import { AuthGuard } from './auth.guard';
+import { ManagerGuard } from './manager.guard';
 
 @NgModule({
   declarations: [
@@ -18,14 +21,14 @@ import { HiComponent } from './components/hi/hi.component';
     LoginComponent,
     DashboardComponent,
     ManagerDashboardComponent,
-    HiComponent
+    LandingComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     FormsModule
   ],
-  providers: [AuthService],
+  providers: [AuthService, AuthGuard, ManagerGuard],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -1,122 +1,123 @@
 <div class="dashboard-container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <h2>Manager</h2>
-      <ul>
-        <li [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'">Pending Applications</li>
-        <li [class.active]="activeTab === 'approved'" (click)="activeTab = 'approved'">Approved</li>
-        <li [class.active]="activeTab === 'rejected'" (click)="activeTab = 'rejected'">Rejected</li>
-      </ul>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Manager</h2>
+    <ul>
+      <li [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'">Pending Applications</li>
+      <li [class.active]="activeTab === 'approved'" (click)="activeTab = 'approved'">Approved</li>
+      <li [class.active]="activeTab === 'rejected'" (click)="activeTab = 'rejected'">Rejected</li>
+    </ul>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <!-- Pending -->
+    <div *ngIf="activeTab === 'pending'" class="card-block">
+      <h2>Pending Applications</h2>
+      <table class="table table-bordered table-hover mt-3">
+        <thead>
+          <tr>
+            <th>Loan ID</th>
+            <th>Loan Type</th>
+            <th>Applicant Name</th>
+            <th>Amount</th>
+            <th>Tenure</th>
+            <th>Purpose</th>
+            <th>Status</th>
+            <th>Applied On</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let loan of pendingLoans">
+            <td>{{ loan.loanId }}</td>
+            <td>{{ loan.loanType }}</td>
+            <td>{{ loan.applicantName }}</td>
+            <td>{{ loan.loanAmount }}</td>
+            <td>{{ loan.tenure }}</td>
+            <td>{{ loan.purpose }}</td>
+            <td>{{ loan.status }}</td>
+            <td>{{ loan.appliedOn }}</td>
+            <td class="actions">
+              <div class="action-buttons">
+              <button class="btn btn-sm btn-success" (click)="approveLoan(loan)">Approve</button>
+              <button class="btn btn-sm btn-danger" (click)="rejectLoan(loan)">Reject</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="pendingLoans.length === 0">
+            <td colspan="9" class="text-muted">No pending applications.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  
-    <!-- Main content -->
-    <div class="main-content">
-      <!-- Pending -->
-      <div *ngIf="activeTab === 'pending'" class="card-block">
-        <h2>Pending Applications</h2>
-        <table class="table table-bordered table-hover mt-3">
-          <thead>
-            <tr>
-              <th>Loan ID</th>
-              <th>Loan Type</th>
-              <th>Applicant Name</th>
-              <th>Amount</th>
-              <th>Tenure</th>
-              <th>Purpose</th>
-              <th>Status</th>
-              <th>Applied On</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let loan of pendingLoans">
-              <td>{{ loan.loanId }}</td>
-              <td>{{ loan.loanType }}</td>
-              <td>{{ loan.applicantName }}</td>
-              <td>{{ loan.loanAmount }}</td>
-              <td>{{ loan.tenure }}</td>
-              <td>{{ loan.purpose }}</td>
-              <td>{{ loan.status }}</td>
-              <td>{{ loan.appliedOn }}</td>
-              <td class="actions">
-                <button class="btn btn-sm btn-success" (click)="approveLoan(loan)">Approve</button>
-                <button class="btn btn-sm btn-danger" (click)="rejectLoan(loan)">Reject</button>
-              </td>
-            </tr>
-            <tr *ngIf="pendingLoans.length === 0">
-              <td colspan="9" class="text-muted">No pending applications.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-  
-      <!-- Approved -->
-      <div *ngIf="activeTab === 'approved'" class="card-block">
-        <h2>Approved Loans</h2>
-        <table class="table table-bordered table-hover mt-3">
-          <thead>
-            <tr>
-              <th>Loan ID</th>
-              <th>Loan Type</th>
-              <th>Applicant Name</th>
-              <th>Amount</th>
-              <th>Tenure</th>
-              <th>Purpose</th>
-              <th>Status</th>
-              <th>Applied On</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let loan of approvedLoans">
-              <td>{{ loan.loanId }}</td>
-              <td>{{ loan.loanType }}</td>
-              <td>{{ loan.applicantName }}</td>
-              <td>{{ loan.loanAmount }}</td>
-              <td>{{ loan.tenure }}</td>
-              <td>{{ loan.purpose }}</td>
-              <td>Approved</td>
-              <td>{{ loan.appliedOn }}</td>
-            </tr>
-            <tr *ngIf="approvedLoans.length === 0">
-              <td colspan="8" class="text-muted">No approved applications.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-  
-      <!-- Rejected -->
-      <div *ngIf="activeTab === 'rejected'" class="card-block">
-        <h2>Rejected Loans</h2>
-        <table class="table table-bordered table-hover mt-3">
-          <thead>
-            <tr>
-              <th>Loan ID</th>
-              <th>Loan Type</th>
-              <th>Applicant Name</th>
-              <th>Amount</th>
-              <th>Tenure</th>
-              <th>Purpose</th>
-              <th>Status</th>
-              <th>Applied On</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let loan of rejectedLoans">
-              <td>{{ loan.loanId }}</td>
-              <td>{{ loan.loanType }}</td>
-              <td>{{ loan.applicantName }}</td>
-              <td>{{ loan.loanAmount }}</td>
-              <td>{{ loan.tenure }}</td>
-              <td>{{ loan.purpose }}</td>
-              <td>Rejected</td>
-              <td>{{ loan.appliedOn }}</td>
-            </tr>
-            <tr *ngIf="rejectedLoans.length === 0">
-              <td colspan="8" class="text-muted">No rejected applications.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+
+    <!-- Approved -->
+    <div *ngIf="activeTab === 'approved'" class="card-block">
+      <h2>Approved Loans</h2>
+      <table class="table table-bordered table-hover mt-3">
+        <thead>
+          <tr>
+            <th>Loan ID</th>
+            <th>Loan Type</th>
+            <th>Applicant Name</th>
+            <th>Amount</th>
+            <th>Tenure</th>
+            <th>Purpose</th>
+            <th>Status</th>
+            <th>Applied On</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let loan of approvedLoans">
+            <td>{{ loan.loanId }}</td>
+            <td>{{ loan.loanType }}</td>
+            <td>{{ loan.applicantName }}</td>
+            <td>{{ loan.loanAmount }}</td>
+            <td>{{ loan.tenure }}</td>
+            <td>{{ loan.purpose }}</td>
+            <td>Approved</td>
+            <td>{{ loan.appliedOn }}</td>
+          </tr>
+          <tr *ngIf="approvedLoans.length === 0">
+            <td colspan="8" class="text-muted">No approved applications.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Rejected -->
+    <div *ngIf="activeTab === 'rejected'" class="card-block">
+      <h2>Rejected Loans</h2>
+      <table class="table table-bordered table-hover mt-3">
+        <thead>
+          <tr>
+            <th>Loan ID</th>
+            <th>Loan Type</th>
+            <th>Applicant Name</th>
+            <th>Amount</th>
+            <th>Tenure</th>
+            <th>Purpose</th>
+            <th>Status</th>
+            <th>Applied On</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let loan of rejectedLoans">
+            <td>{{ loan.loanId }}</td>
+            <td>{{ loan.loanType }}</td>
+            <td>{{ loan.applicantName }}</td>
+            <td>{{ loan.loanAmount }}</td>
+            <td>{{ loan.tenure }}</td>
+            <td>{{ loan.purpose }}</td>
+            <td>Rejected</td>
+            <td>{{ loan.appliedOn }}</td>
+          </tr>
+          <tr *ngIf="rejectedLoans.length === 0">
+            <td colspan="8" class="text-muted">No rejected applications.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-  
+</div>

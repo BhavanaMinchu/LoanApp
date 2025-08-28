@@ -23,9 +23,7 @@ export class LoginComponent {
       if (result.role === 'manager') {
         this.router.navigate(['/manager']);
       } else {
-        this.router.navigate(['/landing']).then(()=>{
-          window.location.reload();
-        });
+        this.router.navigate(['/dashboard']);
       }
     } else {
       alert('Invalid email or password!');

@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -8,64 +7,93 @@ export class AuthService {
   private usersKey = 'users';
   private managersKey = 'managers';
   private currentUserKey = 'currentUser';
+  private loanApplicationsKey = 'loanApplications';
 
   constructor() {
     this.seedManagers();
   }
 
-  // --- Seed two manager accounts (no registration needed) ---
+  // ---- IDs ----
+  private generateUserId(): string {
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    return `U-${Date.now()}-${rand}`;
+  }
+
+  public newLoanId(): string {
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    return `L-${Date.now()}-${rand}`;
+  }
+
+  // ---- Managers seed ----
   private seedManagers() {
     const existing = localStorage.getItem(this.managersKey);
     if (!existing) {
       const managers = [
-        { id: 'M-001', name: 'Manager One',  email: 'manager1@loanapp.com', password: 'manager123', role: 'manager' },
-        { id: 'M-002', name: 'Manager Two',  email: 'manager2@loanapp.com', password: 'manager123', role: 'manager' },
+        { id: 'M-001', name: 'Manager One', email: 'manager1@loanapp.com', password: 'manager123', role: 'manager' },
+        { id: 'M-002', name: 'Manager Two', email: 'manager2@loanapp.com', password: 'manager123', role: 'manager' }
       ];
       localStorage.setItem(this.managersKey, JSON.stringify(managers));
     }
   }
 
-  // --- Users (clients) ---
-  registerUser(user: any) {
+  getAllManagers(): any[] {
+    const m = localStorage.getItem(this.managersKey);
+    return m ? JSON.parse(m) : [];
+  }
+
+  // ---- Users ----
+  getAllUsers(): any[] {
+    const u = localStorage.getItem(this.usersKey);
+    return u ? JSON.parse(u) : [];
+  }
+
+  registerUser(user: { fullName?: string; email: string; password: string; phone?: string }) {
     const users = this.getAllUsers();
-    const newUser = { ...user, role: 'user' }; // ensure role
+    const exists = users.some((x: any) => x.email === user.email);
+    if (exists) {
+      return { success: false, message: 'Email already registered' };
+    }
+
+    const newUser = {
+      id: this.generateUserId(),
+      name: (user.fullName?.trim() || user.email.split('@')[0]).trim(),
+      email: user.email,
+      password: user.password,
+      phone: user.phone || '',
+      role: 'user'
+    };
+
     users.push(newUser);
     localStorage.setItem(this.usersKey, JSON.stringify(users));
+    return { success: true, user: newUser };
   }
 
-  getAllUsers(): any[] {
-    const data = localStorage.getItem(this.usersKey);
-    return data ? JSON.parse(data) : [];
-  }
-
-  getAllManagers(): any[] {
-    const data = localStorage.getItem(this.managersKey);
-    return data ? JSON.parse(data) : [];
-  }
-
-  // --- Role-based login (accepts optional displayName for users without one) ---
-  login(email: string, password: string, displayName?: string):
-    { success: boolean; role?: 'user'|'manager'; user?: any } {
-
-    // Check managers first
+  // ---- Login ----
+  login(email: string, password: string, displayName?: string) {
+    // managers first
     const managers = this.getAllManagers();
     const m = managers.find(x => x.email === email && x.password === password);
     if (m) {
-      localStorage.setItem(this.currentUserKey, JSON.stringify(m));
-      return { success: true, role: 'manager', user: m };
+      const managerWithRole = { ...m, role: 'manager' };
+      localStorage.setItem(this.currentUserKey, JSON.stringify(managerWithRole));
+      return { success: true, role: 'manager', user: managerWithRole };
     }
 
-    // Then check users
+    // users
     const users = this.getAllUsers();
     const idx = users.findIndex(x => x.email === email && x.password === password);
     if (idx > -1) {
-      // Backfill name if missing and provided
-      if ((!users[idx].name || users[idx].name.trim() === '') && displayName) {
-        users[idx] = { ...users[idx], name: displayName };
-        localStorage.setItem(this.usersKey, JSON.stringify(users));
+      let u = { ...users[idx] };
+
+      // backfill id/name if older data missing
+      if (!u.id) u.id = this.generateUserId();
+      if (!u.name || !u.name.trim()) {
+        u.name = (displayName?.trim() || u.fullName?.trim() || email.split('@')[0]).trim();
       }
 
-      const userWithRole = { ...users[idx], role: users[idx].role || 'user' };
+      users[idx] = u;
+      localStorage.setItem(this.usersKey, JSON.stringify(users));
+      const userWithRole = { ...u, role: 'user' };
       localStorage.setItem(this.currentUserKey, JSON.stringify(userWithRole));
       return { success: true, role: 'user', user: userWithRole };
     }
@@ -73,18 +101,27 @@ export class AuthService {
     return { success: false };
   }
 
-  // compatibility
-  loginUser(email: string, password: string): boolean {
-    const res = this.login(email, password);
-    return !!res.success;
-  }
-
   logout() {
     localStorage.removeItem(this.currentUserKey);
   }
 
   getCurrentUser() {
-    const data = localStorage.getItem(this.currentUserKey);
-    return data ? JSON.parse(data) : null;
+    const s = localStorage.getItem(this.currentUserKey);
+    return s ? JSON.parse(s) : null;
+  }
+
+  isManager(): boolean {
+    const u = this.getCurrentUser();
+    return !!(u && u.role === 'manager');
+  }
+
+  // ---- Loans helpers ----
+  getAllLoans(): any[] {
+    const l = localStorage.getItem(this.loanApplicationsKey);
+    return l ? JSON.parse(l) : [];
+  }
+
+  saveAllLoans(loans: any[]) {
+    localStorage.setItem(this.loanApplicationsKey, JSON.stringify(loans));
   }
 }

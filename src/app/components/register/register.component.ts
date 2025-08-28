@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../../auth.service';   // ✅ FIXED PATH
+import { AuthService } from '../../auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -14,11 +15,16 @@ export class RegisterComponent {
     phone: ''
   };
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
-    this.authService.registerUser(this.user);
-    alert('User Registered Successfully!');
-    console.log('User Registered:', this.user);
+    const res = this.authService.registerUser(this.user);
+    if (res.success) {
+      alert('User Registered Successfully! Please login.');
+      this.user = { fullName: '', email: '', password: '', phone: '' };
+      this.router.navigate(['/login']);
+    } else {
+      alert(res.message || 'Registration failed');
+    }
   }
 }

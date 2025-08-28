@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../../auth.service';
 
 interface LoanApplication {
-  loanId: number;
+  loanId: string;
   loanType: string;
   applicantName: string;
   applicantId: string;
@@ -19,10 +21,10 @@ interface LoanApplication {
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  activeTab: string = 'apply'; // default tab
+  activeTab: string = 'apply';
   loanTypes: string[] = ['Home Loan', 'Personal Loan', 'Car Loan', 'Education Loan', 'Business Loan'];
 
-  loanApplications: LoanApplication[] = [];
+  allLoans: LoanApplication[] = [];
 
   // form fields
   loanAmount: number = 0;
@@ -32,16 +34,37 @@ export class DashboardComponent implements OnInit {
 
   currentUser: any;
 
-  constructor() {}
+  constructor(private auth: AuthService, private router: Router) {}
+
+  // ngOnInit(): void {
+  //   this.currentUser = this.auth.getCurrentUser();
+
+  //   // format userId as U001, U002...
+  //   if (this.currentUser && this.currentUser.rawId) {
+  //     this.currentUser.id = 'U' + String(this.currentUser.rawId).padStart(3, '0');
+  //   }
+
+  //   const loans = localStorage.getItem('loanApplications');
+  //   this.allLoans = loans ? JSON.parse(loans) : [];
+  // }
 
   ngOnInit(): void {
-    // get current user info from localStorage (stored after login)
-    const user = localStorage.getItem('currentUser');
-    this.currentUser = user ? JSON.parse(user) : null;
-
-    // load existing applications from localStorage
+    this.currentUser = this.auth.getCurrentUser();
+  
+    // format userId as U-001, U-002...
+    if (this.currentUser && this.currentUser.rawId) {
+      this.currentUser.id = 'U-' + String(this.currentUser.rawId).padStart(3, '0');
+    }
+  
     const loans = localStorage.getItem('loanApplications');
-    this.loanApplications = loans ? JSON.parse(loans) : [];
+    this.allLoans = loans ? JSON.parse(loans) : [];
+  }
+  
+
+  get loanApplications(): LoanApplication[] {
+    // return loans for this user only
+    if (!this.currentUser?.id) return [];
+    return this.allLoans.filter(l => l.applicantId === this.currentUser.id);
   }
 
   applyForLoan() {
@@ -49,7 +72,7 @@ export class DashboardComponent implements OnInit {
       alert('Please fill all fields');
       return;
     }
-  
+
     // Loan type → ID mapping
     const loanTypeMapping: { [key: string]: number } = {
       'Home Loan': 1,
@@ -58,12 +81,17 @@ export class DashboardComponent implements OnInit {
       'Education Loan': 4,
       'Business Loan': 5
     };
-  
+
+    // Create Loan ID like L-1-001 (LoanType-UserCount)
+    const loanTypeId = loanTypeMapping[this.loanType] || 0;
+    const loanCount = this.allLoans.filter(l => l.applicantId === this.currentUser.id).length + 1;
+    const generatedLoanId = `L-${loanTypeId}-${loanCount.toString().padStart(3, '0')}`;
+
     const newLoan: LoanApplication = {
-      loanId: loanTypeMapping[this.loanType] || 0, // fallback 0 if unknown type
+      loanId: generatedLoanId,
       loanType: this.loanType,
       applicantName: this.currentUser?.name || 'Unknown',
-      applicantId: this.currentUser?.id || 'U-001',
+      applicantId: this.currentUser?.id || 'U-UNKNOWN',
       loanAmount: this.loanAmount,
       tenure: this.tenure,
       purpose: this.purpose,
@@ -71,33 +99,36 @@ export class DashboardComponent implements OnInit {
       appliedOn: new Date().toLocaleDateString(),
       decisionDate: null
     };
-  
-    this.loanApplications.push(newLoan);
-    localStorage.setItem('loanApplications', JSON.stringify(this.loanApplications));
-  
+
+    this.allLoans.push(newLoan);
+    this.auth.saveAllLoans(this.allLoans);
+
     // reset form
     this.loanAmount = 0;
     this.loanType = '';
     this.tenure = 0;
     this.purpose = '';
-  
+
     alert('Loan application submitted successfully!');
-    this.activeTab = 'applied'; // switch to applied loans
+    this.activeTab = 'applied';
   }
 
-  withdrawLoan(index: number) {
+  withdrawLoan(loanId: string) {
     if (confirm('Are you sure you want to withdraw this loan application?')) {
-      this.loanApplications.splice(index, 1);
-      localStorage.setItem('loanApplications', JSON.stringify(this.loanApplications));
+      const idx = this.allLoans.findIndex(
+        l => l.loanId === loanId && l.applicantId === this.currentUser.id
+      );
+      if (idx > -1) {
+        this.allLoans.splice(idx, 1);
+        this.auth.saveAllLoans(this.allLoans);
+      }
     }
   }
+
   logout() {
     if (confirm('Do you really want to logout?')) {
-      localStorage.removeItem('currentUser');
-      // Optionally clear loanApplications if you want
-      // localStorage.removeItem('loanApplications');
-      window.location.href = '/login'; // redirect to login
+      this.auth.logout();
+      this.router.navigate(['/login']);
     }
   }
-  
 }
