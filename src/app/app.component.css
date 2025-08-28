@@ -1,4 +1,16 @@
 .navbar {
-    background: linear-gradient(135deg, #6a11cb, #2575fc) !important;
-  }
-  
+  background: linear-gradient(135deg, #6a11cb, #2575fc) !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* ✅ vertically centers text & button */
+  padding: 10px 20px;  /* optional spacing */
+}
+
+.navbar span {
+  color: white;
+  font-size: 18px;
+}
+
+.navbar button {
+  margin-left: 15px; /* add some gap from text */
+}
